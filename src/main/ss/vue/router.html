@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="app"></div>
+<!--vue + element-->
+<script src="vue/vue.js"></script>
+<script src="vue/vue-router.js"></script>
+<script src="element-ui/index.js"></script>
+<script src="axios/axios.min.js"></script>
+<script>
+    //3让Vue使用VueRouter创建
+    Vue.use(VueRouter)
+
+    //6创建对应组件
+    var Login={
+        template: '<h2>我是登录页面</h2>'
+    }
+    var Register={
+        template: '<h2>我是注册页面</h2>'
+    }
+    //4创建router对象
+    var router = new VueRouter({
+    //    5配置路由对象
+        routers:[
+            {path:'/login',component:Login},
+            {path:'/register',component:Register},
+        ]
+    });
+    // 引入vue-router模块 抛出了两个全局组件 router-link =>a to ==> href
+    // router=>view ==>匹配路由接口
+    var App ={
+        template:'<div><router-link to="/login">登录页面</router-link>\n' +
+            '            <router-link to="/register">注册页面</router-link>' +
+            '</div>'
+    };
+
+    new Vue({
+        el:'#app',
+        data(){
+            return{
+
+            }
+        },
+        components:{
+            App
+        },
+        //7交给 vue实例化对象管理
+        router,
+
+        template:'<App/>'
+    });
+    // var oDiv= document.getElementById('app')
+    // window.onhashchange = function () {
+    //     switch (location.hash) {
+    //         case '#/login':
+    //             oDiv.innerHTML = '<h2>我是登录页面</h2>'
+    //             break;
+    //         case "#/register":
+    //             oDiv.innerHTML = '<h2>我是注册页面</h2>'
+    //             break;
+    //         default :
+    //             break;
+    //     }
+    // }
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<header th:fragment="navBar">
+    <nav id="main-nav-wrap">
+        <ul class="main-navigation sf-menu">
+            <li th:class="${activeUri=='personIndex'?'current':''}"><a href="/person/1">Home</a></li>
+            <li th:class="${activeUri=='personDaily'?'has-children current':'has-children'}">
+                <a href="/person/personDaily" title="">Daily List</a>
+<!--                <ul class="sub-menu">-->
+<!--                    <li><a href="category.html">Wordpress</a></li>-->
+<!--                    <li><a href="category.html">HTML</a></li>-->
+<!--                    <li><a href="category.html">Photography</a></li>-->
+<!--                    <li><a href="category.html">UI</a></li>-->
+<!--                    <li><a href="category.html">Mockups</a></li>-->
+<!--                    <li><a href="category.html">Branding</a></li>-->
+<!--                </ul>-->
+            </li>
+            <li class="has-children" th:class="${activeUri=='personSchedule'?'has-children current':'has-children'}">
+                <a href="/person/personSchedule" title="">Schedule</a>
+<!--                <ul class="sub-menu">-->
+<!--                    <li><a href="single-video.html">Video Post</a></li>-->
+<!--                    <li><a href="single-audio.html">Audio Post</a></li>-->
+<!--                    <li><a href="single-gallery.html">Gallery Post</a></li>-->
+<!--                    <li><a href="single-standard.html">Standard Post</a></li>-->
+<!--                </ul>-->
+            </li>
+            <li th:class="${activeUri=='shop'?'current':''}"><a href="/person/shop"  title="">Shop/ScenicSpots</a></li>
+            <li><a href="about.html" title="">About</a></li>
+            <li><a href="contact.html" title="">Contact</a></li>
+        </ul>
+    </nav> <!-- end main-nav-wrap -->
+
+</header>
+</body>
+</html>

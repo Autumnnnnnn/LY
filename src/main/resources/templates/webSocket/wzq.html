@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>五指棋</title>
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+<div id="app">
+<el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+    <el-col>
+        <el-button-group style="width: 860px;margin-bottom: 1px">
+            <template v-for="item,index in wzqqp">
+                <el-button v-if="item == 0" style="width: 55px;height: 55px;background-color: darkred" @click="submitForm(index)" plain>{{item}}</el-button>
+                <el-button v-else-if="item == 1" style="width: 55px;height: 55px;background-color: black" @click="submitForm(index)" plain>{{item}}</el-button>
+                <el-button v-else="item == -1" style="width: 55px;height: 55px" @click="submitForm(index)" plain>{{item}}</el-button>
+            </template>
+        </el-button-group>
+    </el-col>
+</el-form>
+
+</div>
+<script src="../../vue/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<script src="https://cdn.bootcss.com/qs/6.5.1/qs.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    let app = new Vue({
+        el:'#app',
+        data() {
+            return {
+                ruleForm: {
+                    name: '',
+                },
+                rules: {
+                    name: [
+                        { required: true, message: '请输入活动名称', trigger: 'blur' },
+                        { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' }
+                    ],
+                },
+                wzqqp:"",
+            };
+        },
+        methods: {
+            initWzq(){
+                axios
+                    .get('/wzqqp')
+                    .then(res=>{
+                        this.wzqqp=res.data;
+                    })
+            },
+            submitForm(index) {
+                this.wzqqp[index]=1;
+                //axios.post 需要转换为 url拼接的样式 computerId=xxx&time=2012-6-5%xxxxx
+                let data = Qs.stringify(
+                    {
+                        index:index,
+                        content:1
+                    }
+                );
+                axios
+                    .post('/wzqqp/set',data,{headers:{'Content-Type':'application/x-www-form-urlencoded'}})
+                    .then(res=>{
+                        this.wzqqp=res.data;
+                    })
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            }
+        },
+        mounted(){
+            this.initWzq();
+        }
+    })
+</script>
+</body>
+</html>

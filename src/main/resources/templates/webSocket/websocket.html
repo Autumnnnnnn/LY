@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>websocket通讯</title>
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        .text{
+            background-color: #dbfab8;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+            padding: 2px;
+        }
+        .item {
+            margin-top: 10px;
+            margin-right: 40px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-menu
+            :default-active="activeIndex2"
+            class="el-menu-demo"
+            mode="horizontal"
+            @select="handleSelect"
+            background-color="#545c64"
+            text-color="#fff"
+            active-text-color="#ffd04b">
+        <el-menu-item index="1">处理中心</el-menu-item>
+        <el-submenu index="2">
+            <template slot="title">我的工作台</template>
+            <el-menu-item index="2-1">选项1</el-menu-item>
+            <el-menu-item index="2-2">选项2</el-menu-item>
+            <el-menu-item index="2-3">选项3</el-menu-item>
+            <el-submenu index="2-4">
+                <template slot="title">选项4</template>
+                <el-menu-item index="2-4-1">选项1</el-menu-item>
+                <el-menu-item index="2-4-2">选项2</el-menu-item>
+                <el-menu-item index="2-4-3">选项3</el-menu-item>
+            </el-submenu>
+        </el-submenu>
+        <el-menu-item index="3" disabled>消息中心</el-menu-item>
+        <el-menu-item index="4"><a href="https://www.ele.me" target="_blank">订单管理</a></el-menu-item>
+    </el-menu>
+    <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+        <el-form-item label="当前用户id" prop="userId">
+            <el-input v-model="ruleForm.userId"></el-input>
+        </el-form-item>
+        <el-form-item label="聊天对象id" prop="toId">
+            <el-input v-model="ruleForm.toId"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
+            <el-button @click="resetForm('ruleForm')">重置</el-button>
+        </el-form-item>
+    </el-form>
+    </el-form>
+
+    <el-row :gutter="20">
+        <!--聊天界面-->
+        <el-col :span="14">
+            <el-tag type="success" style="display: flex">正在和  {{ruleForm.toId}}  聊天</el-tag>
+            <el-row v-for="item,index in message" type="flex" :justify="item.justify" style="margin-bottom: 10px;">
+                <el-col :span="6">
+                    <el-avatar v-if="item.img != ''" size="medium"  :src="item.img"></el-avatar>
+                    <span  type="success" class="text">{{item.msg}}</span>
+                </el-col>
+            </el-row>
+            <el-row style="margin-bottom: 10px">
+                <el-button type="success" style="float: right" @click="add()">发送</el-button>
+                <el-input v-model="text" style="float: right;width: 300px" ></el-input>
+            </el-row>
+        </el-col>
+        <!--聊天界面-->
+        <!--在线用户-->
+        <el-col :span="10">
+            <div>
+                <template>
+                    <el-table
+                            :data="onlineUser"
+                            stripe
+                            style="width: 100%">
+                        <el-table-column
+                                prop="userId"
+                                label="在线用户"
+                                width="180">
+                        </el-table-column>
+                        <el-table-column
+                                label="操作"
+                                width="100">
+                            <template slot-scope="scope">
+                                <el-badge :value="onlineUser.count" class="item">
+                                    <el-button @click="change(scope.row.userId)" type="success" size="small"  plain>聊天</el-button>
+                                </el-badge>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </template>
+            </div>
+        </el-col>
+        <!--在线用户-->
+    </el-row>
+</div>
+
+<!-- 引入组件库 -->
+<script src="../../vue/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<script src="https://cdn.bootcss.com/qs/6.5.1/qs.min.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>-->
+<!--<script src="https://unpkg.com/element-ui/lib/index.js"></script>-->
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    var app = new Vue({
+        el:'#app',
+        data:function () {
+            return{
+                path:"ws://39.97.251.98:8082/imserver/",
+                socket:"",
+                text:"",
+                message:[
+                    {
+                        img:'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
+                        msg:'聊天区',
+                        justify:'' //justify:'end'
+                    },
+                ],
+                ruleForm: {
+                    userId: '',
+                    toId: '',
+                },
+                rules: {
+                    userId: [
+                        { required: true, message: '请输入活动名称', trigger: 'blur' },
+                        { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' }
+                    ],
+                    toId: [
+                        { required: true, message: '请输入活动名称', trigger: 'blur' },
+                        { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' }
+                    ],
+                },
+                onlineUser:[
+                    {
+                        userId:"",
+                    }
+                ],
+                activeIndex: '1',
+                activeIndex2: '1',
+            }
+        },
+        mounted () {
+            // 初始化
+        },
+        methods: {
+            //改变聊天对象
+            change(toId){
+                if (toId == window.sessionStorage.getItem("userId")) {
+                    this.$message.error("不能和自己聊天！")
+                }else{
+                    window.sessionStorage.setItem("toUserId",toId)
+                    let str = window.sessionStorage.getItem(toId);
+                    let arr = JSON.parse(str);
+                    this.message=arr;
+                    console.log(arr)
+                    this.ruleForm.toId=toId;
+                }
+            },
+            //开启webSocket
+            submitForm(formName) {
+                this.$refs[formName].validate((valid)=>{
+                    if (valid && this.ruleForm.userId!=this.ruleForm.toId) {
+                        // alert('submit!');
+                        this.init()
+                    }else {
+                        if(this.ruleForm.userId==this.ruleForm.toId){
+                            this.$message.error('开启webSocket失败！不能和自己聊天！')
+                        }else{
+                            this.$message.error('开启webSocket失败！')
+                        }
+                             return false;
+                    }
+                });
+            },
+            //重置表格
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            },
+            // 发送信息
+            add(){
+                let str = window.sessionStorage.getItem(window.sessionStorage.getItem("toUserId"));
+                console.log(str)
+                let arr = JSON.parse(str)
+                arr.push({
+                    img: '',
+                    msg: this.text,
+                    justify: 'end',
+                })
+                this.message=arr;
+                str = JSON.stringify(arr)
+                window.sessionStorage.setItem(window.sessionStorage.getItem("toUserId"),str);
+                this.send()
+                this.text='';
+            },
+            //导航 active 选择
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            //
+            init: function () {
+                if(typeof(WebSocket) === "undefined"){
+                    alert("您的浏览器不支持socket")
+                }else{
+                    // 实例化socket
+                    this.socket = new WebSocket(this.path+this.ruleForm.userId)
+                    // 监听socket连接
+                    this.socket.onopen = this.open
+                    // 监听socket错误信息
+                    this.socket.onerror = this.error
+                    // 监听socket消息
+                    this.socket.onmessage = this.getMessage
+                }
+            },
+            open: function () {
+                window.sessionStorage.setItem("userId",this.ruleForm.userId);
+                window.sessionStorage.setItem("toUserId",this.ruleForm.toId);
+                let str = [{
+                    img:'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
+                    msg:'聊天区',
+                    justify:'' //justify:'end'
+                }]
+                let arr = JSON.stringify(str)
+                window.sessionStorage.setItem(window.sessionStorage.getItem("toUserId"),arr)
+                this.$message({
+                    message:"连接成功",
+                    type:"success"
+                })
+            },
+            error: function () {
+                console.log("连接错误")
+            },
+            getMessage: function (msg) {
+                console.log(msg.data)
+                //转换为JSON格式；
+                var arr = JSON.parse(msg.data)
+                //绑定表单，在线userId
+                if(arr.type==-1) {
+                    this.onlineUser = arr.userId
+                }else if(arr.type==1){
+                    if(arr.fromUserId == window.sessionStorage.getItem("toUserId")){
+                        let str = window.sessionStorage.getItem(window.sessionStorage.getItem("toUserId"));
+                        let arr1 =[];
+                        if(JSON.parse(str)!=null)
+                            arr1=JSON.parse(str);
+                        arr1.push({
+                            img:"https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png",
+                            msg:arr.contentText,
+                            justify:''
+                        })
+                        this.message=arr1;
+                        str = JSON.stringify(arr1)
+                        window.sessionStorage.setItem(window.sessionStorage.getItem("toUserId"),str);
+                    }else{
+                        let str = window.sessionStorage.getItem(arr.fromUserId);
+                        let arr1 =[];
+                        if(JSON.parse(str)!=null)
+                            arr1=JSON.parse(str);
+                        arr1.push({
+                            img:"https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png",
+                            msg:arr.contentText,
+                            justify:''
+                        })
+                        str = JSON.stringify(arr1);
+                        window.sessionStorage.setItem(arr.fromUserId,str);
+                        console.log(window.sessionStorage.getItem(arr.fromUserId))
+                    }
+                }
+            },
+            send: function () {
+                if(typeof(WebSocket) == "undefined") {
+                    console.log("您的浏览器不支持WebSocket");
+                }else {
+                    this.socket.send("{\"type\":1,\"toUserId\":\""+this.ruleForm.toId+"\",\"contentText\":\""+this.text+"\"}");
+                }
+            },
+            close: function () {
+                console.log("socket已经关闭")
+            }
+        },
+        destroyed () {
+            // 销毁监听
+            this.socket.onclose = this.close
+        }
+    });
+</script>
+</body>
+
+</html>

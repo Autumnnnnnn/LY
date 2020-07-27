@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <title>首页导航</title>
+    <!--element-->
+    <link rel="stylesheet" href="../element-ui/index.css">
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <!--        header-->
+        <el-header style="height: 300px">
+            <div style="background-color: #00b19d">
+            </div>
+        </el-header>
+        <!--        /header-->
+        <el-container>
+            <!--        aside-->
+            <el-aside width="200px">
+                <div style="background-color: #00b19d">
+                </div>
+            </el-aside>
+            <!--        /aside-->
+            <!--main-->
+            <el-main style="color: #00b19d">
+                <el-row :gutter="20">
+                    <el-col :span="6">
+                        <el-tooltip placement="top">
+                            <div slot="content">基于websocket协议的聊天项目<br/>更新时间：2020/7/15</div>
+                            <a :href="httpId[0]">
+                                <el-button type="primary" @click="To(0)">websocket</el-button>
+                            </a>
+                        </el-tooltip>
+                    </el-col>
+                    <el-col :span="6" :offset="6">
+                        <el-tooltip placement="top">
+                            <div slot="content">基于websocket协议的五子棋游戏<br/>更新时间：2020/7/15</div>
+                            <a :href="httpId[1]">
+                                <el-button type="success">五子棋</el-button>
+                            </a>
+                        </el-tooltip>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="6" :offset="6">
+                        <el-tooltip placement="top">
+                            <div slot="content">持续更新的个人记录网站<br/>更新时间：2020/7/19</div>
+                            <a :href="httpId[2]">
+                                <el-button type="warning" @click="To(2)">昨天与明天</el-button>
+                            </a>
+                        </el-tooltip>
+                    </el-col>
+                    <el-col :span="6" :offset="6">
+                        <el-button type="danger">¿¿</el-button>
+                    </el-col>
+                </el-row>
+            </el-main>
+            <!--/main-->
+        </el-container>
+
+        <!--Footer-->
+        <el-footer height="200px">
+            <div style="background-color: #00b19d">
+            </div>
+        </el-footer>
+        <!--/Footer-->
+
+    </el-container>
+
+</div>
+<!--vue + element-->
+<script src="../vue/vue.js"></script>
+<script src="../element-ui/index.js"></script>
+<script src="../axios/axios.min.js"></script>
+
+
+<script>
+    let app = new Vue({
+        el:'#app',
+        data:function () {
+            return{
+                httpId:[
+                    "/websocket",
+                    "/wzq",
+                    "/login"
+                ]
+            }
+        },
+    })
+</script>
+
+</body>
+</html>
